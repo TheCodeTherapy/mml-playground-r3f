@@ -6,7 +6,7 @@ your own end-to-end live, multiplayer experience using the the unique, real-time
 
 It can be easily deployed to environments that support Node.js and expose ports to the internet.
 
-![MML Playground with React Three Fiber](https://raw.githubusercontent.com/mml-io/mml-playground/main/Playground.png)
+![MML Playground with React Three Fiber](https://raw.githubusercontent.com/TheCodeTherapy/mml-playground-r3f/main/Playground.png)
 
 ## Main features
 
