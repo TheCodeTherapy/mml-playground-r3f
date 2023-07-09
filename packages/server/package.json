@@ -17,7 +17,7 @@
   "dependencies": {
     "@mml-playground/character-network": "0.0.1",
     "@mml-playground/web": "0.0.1",
-    "networked-dom-server": "0.1.0",
+    "networked-dom-server": "https://gitpkg.now.sh/TheCodeTherapy/mml/packages/networked-dom-server?main&scripts.postinstall=%26%26%20npm%20run%20build",
     "chokidar": "^3.5.3",
     "express": "4.18.2",
     "express-ws": "5.0.2",

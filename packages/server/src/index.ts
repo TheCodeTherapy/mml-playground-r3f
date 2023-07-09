@@ -8,7 +8,7 @@ import chokidar from "chokidar";
 import express, { Request } from "express";
 import enableWs from "express-ws";
 import httpProxy from "http-proxy";
-import { LocalObservableDomFactory, EditableNetworkedDOM } from "networked-dom-server";
+import { LocalObservableDOMFactory, EditableNetworkedDOM } from "networked-dom-server";
 
 const PLAYGROUND_DOCUMENT_PATH = path.resolve(__dirname, "../playground.html");
 const PORT = process.env.PORT || 8080;
@@ -53,7 +53,7 @@ const getMmlDocumentContent = (documentPath: string) => {
 
 const playgroundDocument = new EditableNetworkedDOM(
   url.pathToFileURL(PLAYGROUND_DOCUMENT_PATH).toString(),
-  LocalObservableDomFactory,
+  LocalObservableDOMFactory,
 );
 
 const updateExamplesHostUrl = (req: Request) => {
@@ -150,7 +150,7 @@ watcher
     const contents = getMmlDocumentContent(relativeFilePath);
     const document = new EditableNetworkedDOM(
       url.pathToFileURL(filename).toString(),
-      LocalObservableDomFactory,
+      LocalObservableDOMFactory,
     );
     document.load(contents);
 

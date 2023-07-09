@@ -90,7 +90,7 @@ export class CoreMMLScene {
     setGlobalMScene(this.mmlScene as IMMLScene);
     registerCustomElementsToWindow(window);
 
-    this.clickTrigger = MMLClickTrigger.init(document, this.elementsHolder, this.mmlScene as IMMLScene);
+    this.clickTrigger = MMLClickTrigger.init(document, this.mmlScene as IMMLScene);
     if (this.debug) console.log(this.clickTrigger);
   }
 
