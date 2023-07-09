@@ -11,8 +11,8 @@
       const SLOT_DEPTH = 12;
       const SLOT_BORDER_THICKNESS = 1;
       const SPACE_BETWEEN_SLOTS = 3;
-      const INTERACTIVE_SLOT_COUNT_X = 5;
-      const INTERACTIVE_SLOT_COUNT_Z = 4;
+      const INTERACTIVE_SLOT_COUNT_X = 3;
+      const INTERACTIVE_SLOT_COUNT_Z = 3;
 
       const SLOT_EMPTY_COLOR = "#a3e635";
       const SLOT_OCCUPIED_COLOR = "#FFFFFF";
@@ -319,8 +319,8 @@
       for (let x = 0; x < INTERACTIVE_SLOT_COUNT_X; x++) {
         for (let z = 0; z < INTERACTIVE_SLOT_COUNT_Z; z++) {
           const slot = new Slot({
-            x: (SLOT_WIDTH + SPACE_BETWEEN_SLOTS) * x,
-            z: (SLOT_DEPTH + SPACE_BETWEEN_SLOTS) * z,
+            x: SLOT_WIDTH + SPACE_BETWEEN_SLOTS + (SLOT_WIDTH + SPACE_BETWEEN_SLOTS) * x,
+            z: SLOT_DEPTH + SPACE_BETWEEN_SLOTS + (SLOT_DEPTH + SPACE_BETWEEN_SLOTS) * z,
           });
           interactiveSlots.push(slot);
         }
