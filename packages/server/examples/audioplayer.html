@@ -8,12 +8,13 @@
     ry="0"
     start-time="0"
     loop="true"
+    volume="10"
     src="https://s3.eu-west-2.amazonaws.com/s3uk.mgz.me/vod/out_of_time.mp3"
   >
     <m-shader
       audio="my-audio-tag"
       z="4"
-      y="-0.249"
+      y="-0.24"
       x="0"
       rx="-90"
       width="25"
@@ -26,195 +27,55 @@ void main() {
 }
       "
       frag="
-precision highp float;
-uniform sampler2D prgm1Texture;
-
-const float PI = acos(-1.0);
-const float TAU = PI * 2.0;
-
-const int NUM_SAMPLES = 32;
-const float Density = 0.5;
-const float Exposure = 0.3;
-
-float rand(vec2 uv, float t) {
-  float seed = dot(uv, vec2(12.9898, 78.233));
-  return fract(sin(seed) * 43758.5453123 + t);
-}
-
-float gaussian(float z, float u, float o) {
-  return (
-    (1.0 / (o * sqrt(TAU))) *
-    (exp(-(((z - u) * (z - u)) / (2.0 * (o * o)))))
-  );
-}
-
-vec3 gaussgrain(float t) {
-  vec2 ps = vec2(1.01) / resolution.xy;
-  vec2 uv = gl_FragCoord.xy * ps;
-  float noise = rand(uv, t);
-  noise = gaussian(noise, 0.0, 0.5);
-  return vec3(noise);
-}
-
-void main(void) {
-  vec2 uv = vUv;
-  vec2 dist = uv - 0.5;
-  dist.x += sin(0.125 * dist.y + time) * 0.025;
-  dist.y += cos(0.125 * dist.x + time) * 0.025;
-  float Density = 0.75 + 0.2 * sin(2.0 * radians(360.0));
-  dist *= 1.0 / float(NUM_SAMPLES) * Density;
-  float frameScale = 29.97;
-  float frameTime = floor(time * frameScale) / frameScale;
-  vec3 g = gaussgrain(frameTime) * 0.04;
-  vec3 color = texture2D(prgm1Texture, uv).rgb;
-  vec3 cc = color;
-  float illuminationDecay = 1.0;
-  for (int i = 0; i < NUM_SAMPLES; i++)   {
-    uv -= dist;
-    vec3 sample_ = texture2D(prgm1Texture, uv + dist * rand(uv, time)).rgb + g;
-    sample_ *= illuminationDecay * 1.0 + fft * 2.0;
-    color += sample_;
-    float Decay = 0.6 + fft * 0.8;
-    illuminationDecay *= Decay;
-  }
-  gl_FragColor = vec4(mix(color * color * Exposure, cc, 0.5), 1.0);
-}
+      vec3 hash33(vec3 p3) {
+        p3 = fract(p3 * vec3(0.1031, 0.1030, 0.0973));
+        p3 += dot(p3, p3.yxz + 19.19);
+        return fract((p3.xxy + p3.yxx) * p3.zyx);
+      }
+      
+      vec3 mixColor(vec3 col1, vec3 col2, float v) {
+        v = clamp(v, 0.0, 1.0);
+        return clamp(col1 + v * (col2 - col1 * 1.5), 0.0, 1.0);
+      }
+      
+      void main(void) {
+        vec2 uv = vUv;
+        uv.x = (uv.x - 0.5 > 0.0) ? uv.x - 0.521 : 0.479 - uv.x;
+        vec2 p = uv * 2.0 - 1.0;
+        p.y += 0.3;
+        vec3 col = vec3(0.0);
+        vec3 ref = vec3(0.0);
+        float nBands = 32.0;
+        float i = floor((uv.x * 1.3 + 0.323) * nBands);
+        float f = fract((uv.x * 1.3 + 0.323) * nBands);
+        float band = i / nBands;
+        band *= band * band;
+        band = band * 0.995;
+        band += 0.005;
+        float s = texture2D(fftTexture, vec2(band, 0.25)).x;
+        const int nColors = 4;
+        vec3 colors[nColors];
+        colors[0] = vec3(0.0, 0.0, 1.0);
+        colors[1] = vec3(0.0, 1.0, 1.0);
+        colors[2] = vec3(1.0, 1.0, 0.0);
+        colors[3] = vec3(1.0, 0.0, 0.0);
+        vec3 gradCol = colors[0];
+        float n = float(nColors) - 1.0;
+        for(int i = 1; i < nColors; i++) {
+          gradCol = mixColor(gradCol, colors[i], (s - float(i - 1) / n) * n);
+        }
+        col += vec3(1.0 - smoothstep(0.0, 0.001, p.y - s * 1.25));
+        col *= gradCol;
+        ref += vec3(1.0 - smoothstep(0.0, -0.001, p.y + s * 1.25));
+        ref *= gradCol * smoothstep(-0.5, 0.5, p.y);
+        col = mix(ref, col, smoothstep(-0.005, 0.005, p.y));
+        col *= smoothstep(0.125, 0.375, f);
+        col *= smoothstep(0.875, 0.625, f);
+        col = clamp(col, 0.0, 1.0);
+        gl_FragColor = vec4(col,1.0);
+      }
       "
       >
-      <!-- prgm1Texture -->
-      <m-shader
-      frag="
-precision highp float;
-    
-const float PI = acos(-1.0);
-const float TAU = PI * 2.0;
-const float SQRT3 = sqrt(3.0);
-const float TAN30 = SQRT3 / 3.0;
-const float HALFPI = PI / 2.0;
-const float TTP = 1.0 / 3.0;
-const float SSP = 1.0 / 1.5;
-const float STH = 1.0 / 6.0;
-const float T1R = 120.0;
-const float T2R = T1R * 3.0;
-
-float rand(vec2 uv) {
-  float d = dot(uv.xy, vec2(12.9898, 78.233));
-  return fract(sin(d) * 43758.545312);
-}
-
-float dfNoise21(vec2 uv) {
-  vec3 p = fract(vec3(uv.xyx) * 0.1031);
-  p += dot(p, p.yzx + 33.33);
-  return fract((p.x + p.y) * p.z);
-}
-
-float fbm(vec2 uv) {
-  float z = 2.0;
-  float c = 0.0;
-  vec2 u = uv;
-  for(float e = 1.0; e < 6.0; e++) {
-    c += abs(
-      ((mix(dfNoise21(u), rand(u), 0.5) - 0.5) * 2.0)
-    ) / z;
-    z=z*2.,uv=uv*2.;
-  }
-  return c;
-}
-
-mat2 rotate(float x) {
-  float c = cos(x);
-  float s = sin(x);
-  return mat2( c, -s, s, c);
-}
-
-float dualFBM(vec2 a) {
-  vec2 c=a*.7;
-  vec2 b=vec2(fbm(c*1.65),fbm(c*1.7));b=(b-.5)*.2,a+=b;
-  return fbm(a*rotate(.2));
-}
-
-vec2 curve(vec2 uv) {
-  uv.x *= 1.0 + pow(abs(uv.y / 5.0), 2.0);
-  uv.y *= 1.0 + pow(abs(uv.x / 4.0), 2.0);
-  uv = uv * 0.92 + 0.04;
-  return uv;
-}
-
-float ssin(float t) {
-  return (2.0 / PI) * atan(sin(TAU * t * 0.5) / 0.1) * 2.0;
-}
-
-float nzClamp(float x) {
-  return clamp(x, 0.1, 1.0);
-}
-
-vec3 nzClamp(vec3 x) {
-  return clamp(x, 0.1, 1.0);
-}
-
-vec3 hsv2rgb(vec3 c) {
-  c.yz = clamp(c.yz, 0.0, 1.0);
-  vec3 t = vec3(0.0, SSP, TTP);
-  vec3 ct = cos(PI * (c.x + t)) - 1.0;
-  return c.z * (1.0 + 0.5 * c.y * ct);
-}
-
-vec3 hueRotate(vec3 c, float a) {
-  vec2 zhPI = vec2(0.0, HALFPI);
-  vec2 s = sin(vec2(radians(a)) + zhPI);
-  vec3 rot = vec3(TAN30, s);
-  vec3 cc = cross(rot.xxx, c);
-  float dc = dot(rot.xxx, c);
-  return mix(rot.xxx * dc, c, rot.z) + cc * rot.y;
-}
-
-void main(void) {
-  vec2 uv = vUv * 2.0 - 1.0;
-  float ar = resolution.x / resolution.y;
-  uv.x *= ar;
-  vec2 c = curve(vUv);
-  float t1 = mod(time * 6.0, T1R);
-  float t2 = mod(time * 0.3, T2R);
-  float ot1 = nzClamp(ssin(t2 * STH) + 1.0);
-  float ot2 = nzClamp(ssin(t2 * TTP) + 1.0);
-  float T = 2.0 - mix(mix(1.0, 0.125, ot2), mix(0.5, 0.25, ot2), ot1) * 0.5;
-  uv *= 1.0 - 0.2 * cos(uv.yx) * sin(PI / 10.0);
-  uv *= 9.0 * T;
-  float f = fft * 3.0;
-  f *= f;
-  float fbmA = dualFBM(floor(uv)) + f;
-  float fbmB = dualFBM(floor(uv * 0.5)) + f;
-  float fbmC = dualFBM(floor(uv * 0.25)) + f;
-  float fbmD = dualFBM(floor(uv * 0.125))+f;
-  float rnd = nzClamp(mix(mix(fbmA, fbmD, ot2), mix(fbmB, fbmC, ot2), ot1));
-  vec2 black = clamp(smoothstep(2.5, 0.0, cos(uv * TAU)), 0.1, 0.9);
-  vec3 colA = clamp(
-    hsv2rgb(vec3(8.0 * cos(rnd), 1.5 / rnd, 5.0 * pow(abs(rnd), rnd))), 0.5, 0.9
-  );
-  vec3 colB = clamp(
-    hsv2rgb(vec3(7.0 * cos(fbmA), 1.5 / fbmA, 5.0 * pow(abs(fbmA), abs(fbmA)))), 0.2, 0.9
-  );
-  float p = nzClamp(black.x * black.y * smoothstep(0.9, 0.2, length(fract(uv) - 0.5)));
-  float u = nzClamp(0.5 + 0.5 * cos(rnd * t1 + TAU));
-  colA *= p; colB *= p; colA *= u; colB *= u;
-  vec3 cA = colA;
-  vec3 v = sqrt(colA * colA * colB);
-  vec3 w = sqrt(colA * colA / colB);
-  cA = clamp(cA * 2.0, 0.1, 0.9);
-  vec3 cB = nzClamp(sqrt(mix(mix(cA, colB, ot2),mix(v, w, ot2), ot1) / w * v));
-  cB *= (0.99 + 0.01 * sin(110.0 * t1)) * 5.0;
-  float vig = 16.0 * c.x * c.y * (1.0 - c.x) * (1.0 - c.y);
-  cB *= vec3(pow(abs(vig), 0.5));
-  if (c.x < 0.0 || c.x > 1.0) { cB *= 0.0; }
-  if (c.y < 0.0 || c.y > 1.0) { cB *= 0.0; }
-  vec4 color = vec4(cB * 2.0, colA.x * colB.x * cA.x + p * cA.x + p * 0.95);
-  color.xyz *= cA.x * 0.25;
-  color.r *= 0.3; color.g *= 0.2;
-  gl_FragColor=clamp(color * fbmA * 2.0, 0.0, 1.0);
-}
-      "
-      >
-      </m-shader>
     </m-shader>
 
     <m-label
