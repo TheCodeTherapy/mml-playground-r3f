@@ -30,8 +30,8 @@ export const PostProcessing = () => {
             </>
           )}
         </>
-        <HueSaturation blendFunction={BlendFunction.NORMAL} saturation={-0.2} />
-        <BrightnessContrast brightness={0.012} contrast={0.07} />
+        <HueSaturation blendFunction={BlendFunction.NORMAL} saturation={0.0} />
+        <BrightnessContrast brightness={-0.02} contrast={0.07} />
       </EffectComposer>
     </Suspense>
   );

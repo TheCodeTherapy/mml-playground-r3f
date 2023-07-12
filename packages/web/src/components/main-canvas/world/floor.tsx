@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FrontSide, NearestFilter, RepeatWrapping, Texture, TextureLoader } from "three";
 
 export function Floor() {
-  const floorSize: number = 80;
+  const floorSize: number = 120;
   const floorTextureUrl = "/assets/textures/checker.png";
   const [floorTexture, setFloorTexture] = useState<Texture | null>(null);
 
