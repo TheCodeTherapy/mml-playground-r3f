@@ -8,7 +8,7 @@
     ry="0"
     start-time="0"
     loop="true"
-    volume="10"
+    volume="3"
     src="https://s3.eu-west-2.amazonaws.com/s3uk.mgz.me/vod/out_of_time.mp3"
   >
     <m-shader
@@ -42,7 +42,7 @@ void main() {
         vec2 uv = vUv;
         uv.x = (uv.x - 0.5 > 0.0) ? uv.x - 0.521 : 0.479 - uv.x;
         vec2 p = uv * 2.0 - 1.0;
-        p.y += 0.3;
+        p.y -= 1.0;
         vec3 col = vec3(0.0);
         vec3 ref = vec3(0.0);
         float nBands = 32.0;
@@ -50,7 +50,7 @@ void main() {
         float f = fract((uv.x * 1.3 + 0.323) * nBands);
         float band = i / nBands;
         band *= band * band;
-        band = band * 0.995;
+        band = band * 0.25;
         band += 0.005;
         float s = texture2D(fftTexture, vec2(band, 0.25)).x;
         const int nColors = 4;
@@ -64,15 +64,81 @@ void main() {
         for(int i = 1; i < nColors; i++) {
           gradCol = mixColor(gradCol, colors[i], (s - float(i - 1) / n) * n);
         }
-        col += vec3(1.0 - smoothstep(0.0, 0.001, p.y - s * 1.25));
+        col += vec3(1.0 - smoothstep(0.0, 0.005, p.y - s * 1.5));
         col *= gradCol;
-        ref += vec3(1.0 - smoothstep(0.0, -0.001, p.y + s * 1.25));
+        ref += vec3(1.0 - smoothstep(0.0, -0.005, p.y + s * 1.25));
         ref *= gradCol * smoothstep(-0.5, 0.5, p.y);
         col = mix(ref, col, smoothstep(-0.005, 0.005, p.y));
         col *= smoothstep(0.125, 0.375, f);
         col *= smoothstep(0.875, 0.625, f);
-        col = clamp(col, 0.0, 1.0);
-        gl_FragColor = vec4(col,1.0);
+        col *= 1.5;
+        gl_FragColor = vec4(col, 1.0);
+      }
+      "
+      >
+    </m-shader>
+
+    <m-shader
+      audio="my-audio-tag"
+      z="-0.99"
+      y="7.25"
+      x="0"
+      width="25"
+      height="15"
+      vert="
+void main() {
+  vUv = uv;
+  gl_PointSize = 1.;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+}
+      "
+      frag="
+      vec3 hash33(vec3 p3) {
+        p3 = fract(p3 * vec3(0.1031, 0.1030, 0.0973));
+        p3 += dot(p3, p3.yxz + 19.19);
+        return fract((p3.xxy + p3.yxx) * p3.zyx);
+      }
+      
+      vec3 mixColor(vec3 col1, vec3 col2, float v) {
+        v = clamp(v, 0.0, 1.0);
+        return clamp(col1 + v * (col2 - col1 * 1.5), 0.0, 1.0);
+      }
+      
+      void main(void) {
+        vec2 uv = vUv;
+        uv.x = (uv.x - 0.5 > 0.0) ? uv.x - 0.521 : 0.479 - uv.x;
+        vec2 p = uv * 2.0 - 1.0;
+        p.y += 1.0;
+        vec3 col = vec3(0.0);
+        vec3 ref = vec3(0.0);
+        float nBands = 32.0;
+        float i = floor((uv.x * 1.3 + 0.323) * nBands);
+        float f = fract((uv.x * 1.3 + 0.323) * nBands);
+        float band = i / nBands;
+        band *= band * band;
+        band = band * 0.25;
+        band += 0.005;
+        float s = texture2D(fftTexture, vec2(band, 0.25)).x;
+        const int nColors = 4;
+        vec3 colors[nColors];
+        colors[0] = vec3(0.0, 0.0, 1.0);
+        colors[1] = vec3(0.0, 1.0, 1.0);
+        colors[2] = vec3(1.0, 1.0, 0.0);
+        colors[3] = vec3(1.0, 0.0, 0.0);
+        vec3 gradCol = colors[0];
+        float n = float(nColors) - 1.0;
+        for(int i = 1; i < nColors; i++) {
+          gradCol = mixColor(gradCol, colors[i], (s - float(i - 1) / n) * n);
+        }
+        col += vec3(1.0 - smoothstep(0.0, 0.005, p.y - s * 1.5));
+        col *= gradCol;
+        ref += vec3(1.0 - smoothstep(0.0, -0.005, p.y + s * 1.25));
+        ref *= gradCol * smoothstep(-0.5, 0.5, p.y);
+        col = mix(ref, col, smoothstep(-0.005, 0.005, p.y));
+        col *= smoothstep(0.125, 0.375, f);
+        col *= smoothstep(0.875, 0.625, f);
+        col *= 1.5;
+        gl_FragColor = vec4(col, 1.0);
       }
       "
       >

@@ -15,7 +15,7 @@ export function MainCanvas(_props: { mainGroupRef: RefObject<Group> }) {
       <CollidableWorld mainGroupRef={_props.mainGroupRef} />
       <SceneEnvironment />
       <PostProcessing />
-      <PerformanceMonitor />
+      <PerformanceMonitor showByDefault />
     </>
   );
 }
