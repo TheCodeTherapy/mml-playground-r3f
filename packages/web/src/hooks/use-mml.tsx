@@ -9,7 +9,7 @@ import {
   InteractionListener,
   PromptProps,
   registerCustomElementsToWindow,
-  ScenePosition,
+  PositionAndRotation,
   setGlobalMScene,
 } from "mml-web";
 import { RefObject, useEffect, useRef } from "react";
@@ -22,10 +22,9 @@ export class CoreMMLScene {
   private scene: THREE.Scene;
   private camera: THREE.Camera;
   private mmlScene: Partial<IMMLScene>;
-  private scenePosition: ScenePosition;
+  private scenePosition: PositionAndRotation;
   private promptManager: PromptManager;
   private interactionListener: InteractionListener;
-  private elementsHolder: HTMLElement;
   private audioListener: AudioListener;
 
   private clickTrigger: MMLClickTrigger;
@@ -34,7 +33,6 @@ export class CoreMMLScene {
 
   constructor(
     group: Group,
-    elementsHolder: HTMLElement,
     renderer: WebGLRenderer,
     scene: Scene,
     camera: PerspectiveCamera,
@@ -44,10 +42,9 @@ export class CoreMMLScene {
     this.camera = camera;
     this.collisionsManager = collisionsManager;
 
-    this.elementsHolder = elementsHolder;
     this.scenePosition = {
-      location: camera.position,
-      orientation: new Vector3(camera.rotation.x, camera.rotation.y, camera.rotation.z),
+      position: camera.position,
+      rotation: new Vector3(camera.rotation.x, camera.rotation.y, camera.rotation.z),
     };
 
     const { interactionListener } = InteractionManager.init(document.body, this.camera, this.scene);
@@ -64,7 +61,7 @@ export class CoreMMLScene {
       getThreeScene: () => scene,
       getRootContainer: () => group,
       getCamera: () => camera,
-      getUserPosition: () => this.scenePosition,
+      getUserPositionAndRotation: () => this.scenePosition,
       addCollider: (object: Object3D) => {
         this.collisionsManager.addMeshesGroup(object as Group);
       },
@@ -129,14 +126,7 @@ export function useMML(
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const host = window.location.host;
       document.getElementById("playground")?.setAttribute("src", `${protocol}//${host}/document`);
-      new CoreMMLScene(
-        mainGroupRef.current,
-        document.body,
-        renderer,
-        scene,
-        camera as PerspectiveCamera,
-        collisionsManager
-      );
+      new CoreMMLScene(mainGroupRef.current, renderer, scene, camera as PerspectiveCamera, collisionsManager);
     }
   });
 }

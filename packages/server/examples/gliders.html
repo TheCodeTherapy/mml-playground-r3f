@@ -14,11 +14,16 @@
   const cellSize = 0.5;
   let stepCount = 0;
 
+  const cubes = new Map();
+
   for (let x = 0; x < worldSize; x++) {
     world[x] = [];
     for (let y = 0; y < worldSize; y++) {
       world[x][y] = 0; // Math.random() < 0.25 ? 1 : 0;
-      if (world[x][y]) createCube(x, y);
+      if (world[x][y]) {
+        createCube(x, y);
+        cubes.set(`${x}:${y}`, )
+      }
     }
   }
 
@@ -74,10 +79,11 @@
   }
 
   function createCube(x, y) {
+    // const hasCube = document.getElementById(`${x}:${y}`);
     const cube = document.createElement("m-cube");
     let red = Math.floor((x / worldSize) * 255);
     let green = Math.floor((y / worldSize) * 255);
-    let blue = 128; // constant for simplicity, but could also vary
+    let blue = 128;
     [red, green, blue] = rotateHue(red, green, blue, stepCount * 4);
     const redHex = ("0" + red.toString(16)).slice(-2);
     const greenHex = ("0" + green.toString(16)).slice(-2);
@@ -90,9 +96,14 @@
     cube.setAttribute("sx", "0.5");
     cube.setAttribute("sy", "0.5");
     cube.setAttribute("sz", "0.5");
-    cube.setAttribute("id", x + ":" + y);
+    cube.setAttribute("id", `${x}:${y}`);
     cube.setAttribute("collide", "true");
     document.body.appendChild(cube);
+  }
+
+  function deleteCube(x, y) {
+    const cubeToDelete = document.getElementById(`${x}:${y}`);
+    cubeToDelete.remove();
   }
 
   function createGliderBRTL(newWorld) {
@@ -146,8 +157,9 @@
         if (newWorld[x][y]) {
           if (!alive) createCube(x, y);
         } else if (alive) {
-          const cell = document.getElementById(x + ":" + y);
-          if (cell !== null) cell.remove()
+          deleteCube(x, y);
+          // const cell = document.getElementById(x + ":" + y);
+          // if (cell !== null) cell.remove()
         }
       }
     }
