@@ -76,7 +76,7 @@ class CharacterStore {
   private async _loadModel(): Promise<void> {
     return new Promise((resolve, reject) => {
       this._fbxLoader.load(
-        "/assets/models/bot_100_tpose.fbx",
+        "/assets/models/bot_100_tpose3.fbx",
         (fbx) => {
           fbx.traverse((child) => {
             if (child.type === "SkinnedMesh") {
@@ -96,8 +96,8 @@ class CharacterStore {
             this._modelHead.visible = false;
             const center = this._modelBoundingBox.getCenter(new Vector3());
             const boxHeight = this._modelBoundingBox.max.y - this._modelBoundingBox.min.y;
-            const y = this._modelBoundingBox.min.y + 0.95 * boxHeight;
-            this._modelHead.position.set(center.x, y - 0.5, center.z + 0.05);
+            const y = this._modelBoundingBox.min.y + 0.7 * boxHeight;
+            this._modelHead.position.set(center.x, y, center.z + 0.05);
             this._model.position.set(0, -0.5, 0);
             this._container.add(this._model);
             this._container.add(this._modelHead);

@@ -4,7 +4,7 @@ import { SceneFog } from "./scene-fog";
 import { SunLight } from "./scene-sun";
 
 export const SceneEnvironment = () => {
-  const hdrUrl = "/assets/hdr/industrial_sunset.hdr";
+  const hdrUrl = "/assets/hdr/industrial_sunset_2k.hdr";
 
   return (
     <>
