@@ -19,8 +19,8 @@ export const NetworkProvider: FC<NetworkProviderProps> = ({ children }) => {
   const executedOnce = useRef<boolean>(false);
   const retryCount = useRef<number>(0);
 
-  const retryInterval = 3000;
-  const maxRetryCount: number = 3;
+  const retryInterval = 1000;
+  const maxRetryCount: number = 5;
   const packetsUpdateRate = (1 / 30) * 1000;
 
   const [network, setNetwork] = useState<Network | null>(null);
@@ -83,14 +83,14 @@ export const NetworkProvider: FC<NetworkProviderProps> = ({ children }) => {
       .connect(connectionUrl)
       .then(() => {
         executedOnce.current = true;
-        setTimeout(showConnected, 2500);
         setConnected(true);
         setId(network.id);
+        setTimeout(showConnected, 500);
         console.log(`[Network] CONNECTED to ${connectionUrl} as ID: ${network.id}`);
       })
       .catch(() => {
         console.log(`[Network] Failed to connect to ${connectionUrl}`);
-        retryCount.current += 1;
+        retryCount.current++;
         setTimeout(connect, retryInterval);
       });
   }, [network]);
