@@ -14,16 +14,11 @@
   const cellSize = 0.5;
   let stepCount = 0;
 
-  const cubes = new Map();
-
   for (let x = 0; x < worldSize; x++) {
     world[x] = [];
     for (let y = 0; y < worldSize; y++) {
       world[x][y] = 0; // Math.random() < 0.25 ? 1 : 0;
-      if (world[x][y]) {
-        createCube(x, y);
-        cubes.set(`${x}:${y}`, )
-      }
+      if (world[x][y]) createCube(x, y);
     }
   }
 
@@ -79,7 +74,6 @@
   }
 
   function createCube(x, y) {
-    // const hasCube = document.getElementById(`${x}:${y}`);
     const cube = document.createElement("m-cube");
     let red = Math.floor((x / worldSize) * 255);
     let green = Math.floor((y / worldSize) * 255);
@@ -158,11 +152,10 @@
           if (!alive) createCube(x, y);
         } else if (alive) {
           deleteCube(x, y);
-          // const cell = document.getElementById(x + ":" + y);
-          // if (cell !== null) cell.remove()
         }
       }
     }
+
     if (prevStateHashes.has(stateHash)) {
       if (Math.random() < 0.5) {
         createGliderBLTR(newWorld);
@@ -170,8 +163,7 @@
       } else {
         createGliderBRTL(newWorld);
         createGliderBRTL(newWorld);
-      }
-      
+      }      
     } else {
       prevStateHashes.add(stateHash);
       if (prevStateHashes.size > maxPrevStates) {
