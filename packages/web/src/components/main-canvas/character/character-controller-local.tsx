@@ -1,3 +1,5 @@
+import { type ClientUpdate } from "@mml-playground/character-network";
+import { packetsUpdateRate } from "@mml-playground/character-network/src/character-network-settings";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Box3, Group, Line3, Matrix4, Quaternion, Raycaster, Vector2, Vector3 } from "three";
@@ -6,7 +8,6 @@ import { useCollisionsManager } from "../../../collisions/use-collisions-manager
 import { ease } from "../../../helpers/math-helpers";
 import { useInputMapper } from "../../../hooks/use-input-mapper";
 import { useTime } from "../../../hooks/use-time";
-import { ClientUpdate } from "../../../network/network";
 import { useNetwork } from "../../../network/use-network";
 
 import { CharacterAnimationState } from "./character-store";
@@ -19,8 +20,7 @@ export const CharacterControllerLocal = ({
   const maxWalkSpeed = 5;
   const maxRunSpeed = 7.0;
   const gravity = -42;
-  const jumpForce = 17;
-  const packetsUpdateRate: number = (1 / 30) * 1000;
+  const jumpForce = 15;
 
   const vectorUp = new Vector3(0, 1, 0);
   const vectorDown = new Vector3(0, -1, 0);
@@ -47,7 +47,7 @@ export const CharacterControllerLocal = ({
   const [characterState, setCharacterState] = useState<CharacterAnimationState>("idle");
   const [clientState, setClientState] = useState<ClientUpdate>({
     id: 0,
-    location: new Vector3(),
+    position: new Vector3(),
     rotation: new Vector2(),
     state: "idle",
   });
@@ -187,7 +187,7 @@ export const CharacterControllerLocal = ({
     if (!characterRef.current || id === null) return;
     setClientState({
       id: id,
-      location: characterRef.current.position.clone(),
+      position: characterRef.current.position.clone(),
       rotation: new Vector2(characterRef.current.quaternion.y, characterRef.current.quaternion.w),
       state: characterState,
     });
@@ -202,7 +202,7 @@ export const CharacterControllerLocal = ({
 
       return () => clearInterval(interval);
     }
-  }, [clientState, id, packetsUpdateRate, sendUpdate, updateNetworkState]);
+  }, [clientState, id, sendUpdate, updateNetworkState]);
 
   useFrame(() => {
     setCharacterState(getCharacterState());

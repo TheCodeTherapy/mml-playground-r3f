@@ -10,7 +10,7 @@ import { CHAR_STORE, CharacterAnimationState, CharacterStore, type CharacterAnim
 
 export const CharacterModel: FC<CharacterAnimatorProps> = ({
   characterState,
-  transitionDuration = 0.21,
+  transitionDuration = 0.15,
   isLocal = true,
   id,
 }) => {
@@ -40,7 +40,6 @@ export const CharacterModel: FC<CharacterAnimatorProps> = ({
 
   useEffect(() => {
     if (characterStore.modelLoaded && characterStore.mixer) {
-      // const duration = characterState === "idle" ? transitionDuration * 3 : transitionDuration;
       const duration = transitionDuration;
       transitionToAnimation(characterState, duration);
     }

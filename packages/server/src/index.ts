@@ -3,7 +3,7 @@ import { createServer } from "http";
 import path from "path";
 import url from "url";
 
-import { Network } from "@mml-playground/character-network";
+import { CharacterNetworkServer } from "@mml-playground/character-network";
 import chokidar from "chokidar";
 import express, { Request } from "express";
 import enableWs from "express-ws";
@@ -88,7 +88,7 @@ const exampleDocuments: {
   };
 } = {};
 
-const characterNetwork = new Network();
+const characterNetwork = new CharacterNetworkServer();
 (app as any).ws(CHARACTER_NETWORK_SOCKET_PATH, (ws: any) => {
   characterNetwork.connectClient(ws);
 });

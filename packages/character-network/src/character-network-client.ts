@@ -1,15 +1,8 @@
 import { Vector2, Vector3 } from "three";
 
-export type AnimationState = "idle" | "walk" | "run" | "jumpToAir" | "air" | "airToGround";
+import { AnimationState, ClientUpdate } from "./types";
 
-export type ClientUpdate = {
-  id: number;
-  location: Vector3;
-  rotation: Vector2;
-  state: AnimationState;
-};
-
-export class Network {
+class CharacterNetworkClient {
   public connected: boolean = false;
   public clientUpdates: Map<number, ClientUpdate> = new Map();
   public receivedPackets: { bytes: number; timestamp: number }[] = [];
@@ -42,7 +35,9 @@ export class Network {
               if (typeof message.data === "string") {
                 const data = JSON.parse(message.data);
                 if (data.type === "ping") {
-                  this.connection.ws?.send(JSON.stringify({ type: "pong", id: this.connection.clientId }));
+                  this.connection.ws?.send(
+                    JSON.stringify({ type: "pong", id: this.connection.clientId }),
+                  );
                 }
                 if (typeof data.connected !== "undefined" && this.connected === false) {
                   if (this.clientUpdates.get(0)) this.clientUpdates.delete(0);
@@ -128,9 +123,9 @@ export class Network {
     const buffer = new ArrayBuffer(19);
     const dataView = new DataView(buffer);
     dataView.setUint16(0, update.id); // id
-    dataView.setFloat32(2, update.location.x); // position.x
-    dataView.setFloat32(6, update.location.y); // position.x
-    dataView.setFloat32(10, update.location.z); // position.z
+    dataView.setFloat32(2, update.position.x); // position.x
+    dataView.setFloat32(6, update.position.y); // position.x
+    dataView.setFloat32(10, update.position.z); // position.z
     dataView.setInt16(14, update.rotation.x * 32767); // quaternion.y
     dataView.setInt16(16, update.rotation.y * 32767); // quaternion.w
     dataView.setUint8(18, this.animationStateToByte(update.state)); // animationState
@@ -146,9 +141,9 @@ export class Network {
     const quaternionY = dataView.getInt16(14) / 32767; // quaternion.y
     const quaternionW = dataView.getInt16(16) / 32767; // quaternion.w
     const state = this.byteToAnimationState(dataView.getUint8(18)); // animationState
-    const location = new Vector3(x, y, z);
+    const position = new Vector3(x, y, z);
     const rotation = new Vector2(quaternionY, quaternionW);
-    return { id, location, rotation, state };
+    return { id, position, rotation, state };
   }
 
   public sendUpdate(update: ClientUpdate): void {
@@ -160,3 +155,5 @@ export class Network {
     this.connection.ws?.send(encodedUpdate);
   }
 }
+
+export { CharacterNetworkClient };

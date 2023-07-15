@@ -201,6 +201,7 @@ class CharacterStore {
         if (id) {
           this._modelMaterial.uniforms.diffuseRandomColor.value = this._modelMaterial.colorsCube216[id];
         }
+        this._modelMaterial.needsUpdate = true;
       }
     });
   }

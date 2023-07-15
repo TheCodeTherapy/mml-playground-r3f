@@ -1,7 +1,7 @@
+import { type ClientUpdate } from "@mml-playground/character-network";
+import { CharacterNetworkClient } from "@mml-playground/character-network/src/character-network-client";
 import { createContext, useState, useEffect, useRef, useCallback, FC, ReactNode } from "react";
 import { toast } from "react-toastify";
-
-import { ClientUpdate, Network } from "./network";
 
 export const NetworkContext = createContext<{
   connected: boolean;
@@ -23,7 +23,7 @@ export const NetworkProvider: FC<NetworkProviderProps> = ({ children }) => {
   const maxRetryCount: number = 5;
   const packetsUpdateRate = (1 / 30) * 1000;
 
-  const [network, setNetwork] = useState<Network | null>(null);
+  const [network, setNetwork] = useState<CharacterNetworkClient | null>(null);
   const [connected, setConnected] = useState<boolean>(false);
   const [id, setId] = useState<number | null>(null);
   const [clientUpdates, setClientUpdates] = useState<Map<number, ClientUpdate>>(new Map());
@@ -97,7 +97,7 @@ export const NetworkProvider: FC<NetworkProviderProps> = ({ children }) => {
 
   useEffect(() => {
     if (network === null) {
-      setNetwork(new Network());
+      setNetwork(new CharacterNetworkClient());
     } else if (executedOnce.current === false && network) {
       connect();
     }

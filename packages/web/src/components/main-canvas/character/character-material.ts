@@ -19,7 +19,7 @@ export class CharacterMaterial extends MeshPhysicalMaterial {
     this.specularColor = new Color(0x0077ff);
     this.specularIntensity = 0.1;
     this.envMapIntensity = 1.8;
-    this.transmission = 0.1;
+    this.transmission = 0.9;
     this.ior = 1.5;
     this.thickness = 0.1;
     this.sheenColor = new Color(0x000000);
@@ -54,7 +54,7 @@ export class CharacterMaterial extends MeshPhysicalMaterial {
 
       shader.fragmentShader = injectBefore(
         shader.fragmentShader,
-        "#include <output_fragment>",
+        "#include <opaque_fragment>",
         /* glsl */ `
           float distance = length(vWorldPosition - cameraPosition);
           float normalizedDistance = (distance - nearClip) / (farClip - nearClip);

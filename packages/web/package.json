@@ -17,13 +17,14 @@
     "type-check": "tsc"
   },
   "dependencies": {
+    "@mml-playground/character-network": "0.0.1",
     "@react-three/drei": "^9.77.1",
     "@react-three/fiber": "^8.13.3",
     "@react-three/postprocessing": "^2.14.11",
     "r3f-perf": "^7.1.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "three": "^0.152.1",
+    "three": "^0.154.0",
     "mobx": "6.9.0",
     "mobx-react-lite": "3.4.3",
     "mml-web": "https://gitpkg.now.sh/TheCodeTherapy/mml/packages/mml-web?features/experimental&scripts.postinstall=%26%26%20npm%20run%20build",
@@ -33,7 +34,7 @@
   "devDependencies": {
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
-    "@types/three": "^0.152.1",
+    "@types/three": "^0.154.0",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
     "@typescript-eslint/parser": "^5.59.0",
     "@vitejs/plugin-react": "^4.0.0",

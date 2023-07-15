@@ -20,12 +20,12 @@ export const CharacterControllerRemote: React.FunctionComponent<CharacterControl
 
   const { clientUpdates } = useNetwork();
 
-  const lerpFactor = 0.1;
+  const lerpFactor = 0.2;
 
   useFrame(() => {
     const clientUpdate = clientUpdates.get(clientId);
     if (clientUpdate && characterRef.current) {
-      const targetPosition = clientUpdate.location;
+      const targetPosition = clientUpdate.position;
       const currentPosition = characterRef.current.position;
       currentPosition.lerp(targetPosition, lerpFactor);
 
