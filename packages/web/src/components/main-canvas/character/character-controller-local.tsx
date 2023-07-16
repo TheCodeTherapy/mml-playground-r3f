@@ -17,8 +17,8 @@ export const CharacterControllerLocal = ({
 }: {
   children: (characterState: CharacterAnimationState) => JSX.Element;
 }) => {
-  const maxWalkSpeed = 5;
-  const maxRunSpeed = 7.0;
+  const maxWalkSpeed = 6;
+  const maxRunSpeed = 8.5;
   const gravity = -42;
   const jumpForce = 15;
 
@@ -69,7 +69,8 @@ export const CharacterControllerLocal = ({
 
   const getCharacterState = () => {
     if (conflictingDirection) return "idle";
-    if (currentHeight.current > 1.7 && !characterOnGround.current) return "air";
+    const jumpHeight = characterVelocity.current.y > 0 ? 0.2 : 1.8;
+    if (currentHeight.current > jumpHeight && !characterOnGround.current) return "air";
     return run && anyDirection ? "run" : anyDirection ? "walk" : "idle";
   };
 
@@ -119,7 +120,7 @@ export const CharacterControllerLocal = ({
     const dt = time.smoothDelta > time.delta * 1.75 ? time.delta : time.smoothDelta;
 
     if (characterOnGround.current) {
-      characterCanJump.current = true;
+      if (!jump) characterCanJump.current = true;
       if (jump && characterCanJump.current) {
         characterVelocity.current.y += jumpForce;
         characterCanJump.current = false;
@@ -133,20 +134,27 @@ export const CharacterControllerLocal = ({
 
     characterRef.current.position.addScaledVector(characterVelocity.current, dt);
 
+    tempVector.current.set(0, 0, 0);
+
     if (forward) {
-      tempVector.current.set(0, 0, -1).applyAxisAngle(vectorUp, azimuthalAngle.current);
-      characterRef.current.position.addScaledVector(tempVector.current, speed.current * dt);
+      const forwardVector = new Vector3(0, 0, -1).applyAxisAngle(vectorUp, azimuthalAngle.current);
+      tempVector.current.add(forwardVector);
     }
     if (backward) {
-      tempVector.current.set(0, 0, 1).applyAxisAngle(vectorUp, azimuthalAngle.current);
-      characterRef.current.position.addScaledVector(tempVector.current, speed.current * dt);
+      const backwardVector = new Vector3(0, 0, 1).applyAxisAngle(vectorUp, azimuthalAngle.current);
+      tempVector.current.add(backwardVector);
     }
     if (left) {
-      tempVector.current.set(-1, 0, 0).applyAxisAngle(vectorUp, azimuthalAngle.current);
-      characterRef.current.position.addScaledVector(tempVector.current, speed.current * dt);
+      const leftVector = new Vector3(-1, 0, 0).applyAxisAngle(vectorUp, azimuthalAngle.current);
+      tempVector.current.add(leftVector);
     }
     if (right) {
-      tempVector.current.set(1, 0, 0).applyAxisAngle(vectorUp, azimuthalAngle.current);
+      const rightVector = new Vector3(1, 0, 0).applyAxisAngle(vectorUp, azimuthalAngle.current);
+      tempVector.current.add(rightVector);
+    }
+
+    if (tempVector.current.length() > 0) {
+      tempVector.current.normalize();
       characterRef.current.position.addScaledVector(tempVector.current, speed.current * dt);
     }
     characterRef.current.updateMatrixWorld();
