@@ -1,4 +1,4 @@
-import { Color, CubeTexture, MeshPhysicalMaterial, UniformsUtils } from "three";
+import { Color, CubeTexture, DataTexture, MeshPhysicalMaterial, Texture, UniformsUtils } from "three";
 
 import { bayerDither, injectBefore, injectBeforeMain, injectInsideMain } from "../../../helpers/shader-helpers";
 
@@ -7,23 +7,25 @@ type TUniform<TValue = any> = { value: TValue };
 
 export class CharacterMaterial extends MeshPhysicalMaterial {
   public uniforms: Record<string, TUniform> = {};
-  public envTexture: CubeTexture | null = null;
+  public envTexture: CubeTexture | DataTexture | Texture | null = null;
   public colorsCube216: Color[] = [];
 
   constructor() {
     super();
     this.color = new Color(0xffffff);
     this.opacity = 1.0;
-    this.metalness = 0.99;
-    this.roughness = 0.1;
+    this.metalness = 0.75;
+    this.roughness = 0.17;
     this.specularColor = new Color(0x0077ff);
     this.specularIntensity = 0.1;
-    this.envMapIntensity = 1.8;
-    this.transmission = 0.9;
+    this.envMapIntensity = 0.6;
+    this.transmission = 0.6;
+    this.transmissionMap = this.envTexture;
     this.ior = 1.5;
     this.thickness = 0.1;
     this.sheenColor = new Color(0x000000);
     this.sheen = 0.25;
+    this.transparent = true;
 
     this.onBeforeCompile = (shader) => {
       this.uniforms = UniformsUtils.clone(shader.uniforms);
@@ -49,6 +51,24 @@ export class CharacterMaterial extends MeshPhysicalMaterial {
           uniform float time;
           uniform vec3 diffuseRandomColor;
           ${bayerDither}
+
+          vec2 rand2(vec2 p) {
+            return fract(vec2(sin(p.x * 591.32 + p.y * 154.077), cos(p.x * 391.32 + p.y * 49.077)));
+          }
+          
+          float voronoi(in vec2 x) {
+            vec2 p = floor(x);
+            vec2 f = fract(x);
+            float minDistance = 1.0;
+            for(int j = -1; j <= 1; j ++)
+            for(int i = -1; i <= 1; i ++) {
+              vec2 b = vec2(i, j);
+              vec2 rand = 0.5 + 0.5 * sin(time * 1.5 + 12.0 * rand2(p + b));
+              vec2 r = vec2(b) - f + rand;
+              minDistance = min(minDistance, length(r));
+            }
+            return minDistance;
+          }
         `
       );
 
@@ -70,10 +90,22 @@ export class CharacterMaterial extends MeshPhysicalMaterial {
             d = bayerDither(bayerbr, p - ivec2(4, 4));
           }
           if (distance <= ditheringNear + d * ditheringRange) discard;
+          
+          vec2 uv = vUv;
+          float val = pow(voronoi(uv * 16.0) * 1.2, 0.5);
+          float thickness = 1.0 / 500.0;
+          vec2 g = step(mod(uv, 0.015), vec2(thickness));
+          float a = 1.0 - clamp(val * (g.x + g.y), 0.0, 1.0);
+          vec3 grid = vec3(smoothstep(0.01, 0.0, a) * 0.15) * diffuseRandomColor;
+
           float s = clamp(0.35 + 0.35 * sin(5.0 * -time + vUv.y * 800.0), 0.0, 1.0);
           float scanLines = pow(s, 1.33);
+
           outgoingLight *= diffuseRandomColor;
-          outgoingLight += smoothstep(0.1, 0.0, scanLines) * 0.05;
+
+          outgoingLight += grid;
+
+          // outgoingLight += smoothstep(0.1, 0.0, scanLines) * 0.025;
         `
       );
     };
@@ -95,8 +127,10 @@ export class CharacterMaterial extends MeshPhysicalMaterial {
     }
   }
 
-  setEnvTexture(cubeTexture: CubeTexture): void {
+  setEnvTexture(cubeTexture: CubeTexture | DataTexture | Texture): void {
     this.envTexture = cubeTexture;
+    this.envTexture.needsUpdate = true;
     this.transmissionMap = this.envTexture;
+    this.transmissionMap.needsUpdate = true;
   }
 }

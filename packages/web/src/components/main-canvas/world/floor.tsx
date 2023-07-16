@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FrontSide, NearestFilter, RepeatWrapping, Texture, TextureLoader } from "three";
+import { FrontSide, LinearMipMapLinearFilter, NearestFilter, RepeatWrapping, Texture, TextureLoader } from "three";
 
 export function Floor() {
   const floorSize: number = 210;
@@ -8,9 +8,10 @@ export function Floor() {
 
   useEffect(() => {
     if (floorTexture) {
-      floorTexture.minFilter = floorTexture.magFilter = NearestFilter;
+      floorTexture.magFilter = NearestFilter;
+      floorTexture.minFilter = LinearMipMapLinearFilter;
       floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
-      floorTexture.repeat.set(floorSize / 2, floorSize / 2);
+      floorTexture.repeat.set(floorSize / 1.5, floorSize / 1.5);
     } else {
       new TextureLoader().load(floorTextureUrl, (texture) => setFloorTexture(texture));
     }

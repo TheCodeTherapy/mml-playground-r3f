@@ -8,13 +8,13 @@ import { CHAR_STORE } from "../character/character-store";
 export function CameraManager() {
   const { camera } = useThree();
 
-  const initialCamDistance: number = 3;
+  const initialCamDistance: number = 2.5;
 
   const dampingFactor = 0.075;
-  const minDistance = 0;
-  const maxDistance = 8;
-  const minFOV = 79;
-  const maxFOV = 84;
+  const minDistance = 0.1;
+  const maxDistance = 6;
+  const minFOV = 78;
+  const maxFOV = 85;
   const minPolarAngle = Math.PI * 0.25;
   const maxPolarAngle = Math.PI * 0.95;
 

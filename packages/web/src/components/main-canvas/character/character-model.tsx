@@ -1,7 +1,7 @@
 import { Html } from "@react-three/drei";
-import { PrimitiveProps, useFrame } from "@react-three/fiber";
+import { PrimitiveProps, useFrame, useThree } from "@react-three/fiber";
 import { useRef, useEffect, FC, useState, useCallback } from "react";
-import { AnimationAction, LoopRepeat } from "three";
+import { AnimationAction, DataTexture, LoopRepeat, Texture } from "three";
 
 import { useTime } from "../../../hooks/use-time";
 import { useToggle } from "../../../hooks/use-toggle";
@@ -18,6 +18,7 @@ export const CharacterModel: FC<CharacterAnimatorProps> = ({
   const [characterStore] = useState(() => (isLocal ? CHAR_STORE : new CharacterStore()));
   const characterModelRef = useRef<PrimitiveProps | null>(null);
   const time = useTime();
+  const { scene } = useThree();
 
   const transitionToAnimation = useCallback(
     (targetAnimation: CharacterAnimationState, duration: number): void => {
@@ -49,7 +50,11 @@ export const CharacterModel: FC<CharacterAnimatorProps> = ({
     if (characterStore.modelLoaded && characterStore.mixer) {
       const dt = time.smoothDelta > time.delta * 1.75 ? time.delta : time.smoothDelta;
       characterStore.mixer.update(dt);
-      characterStore.updateMaterialUniforms(time.time, id);
+      if (scene.background && scene.background instanceof DataTexture) {
+        characterStore.updateMaterialUniforms(time.time, id, scene.background as Texture);
+      } else {
+        characterStore.updateMaterialUniforms(time.time, id);
+      }
     }
   });
 

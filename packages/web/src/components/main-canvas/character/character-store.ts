@@ -4,10 +4,13 @@ import {
   AnimationMixer,
   Box3,
   Box3Helper,
+  CubeTexture,
+  DataTexture,
   Mesh,
   MeshBasicMaterial,
   Object3D,
   SphereGeometry,
+  Texture,
   Vector3,
 } from "three";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
@@ -96,8 +99,8 @@ class CharacterStore {
             this._modelHead.visible = false;
             const center = this._modelBoundingBox.getCenter(new Vector3());
             const boxHeight = this._modelBoundingBox.max.y - this._modelBoundingBox.min.y;
-            const y = this._modelBoundingBox.min.y + 0.7 * boxHeight;
-            this._modelHead.position.set(center.x, y, center.z + 0.05);
+            const y = this._modelBoundingBox.min.y + 0.65 * boxHeight;
+            this._modelHead.position.set(center.x, y, center.z);
             this._model.position.set(0, -0.5, 0);
             this._container.add(this._model);
             this._container.add(this._modelHead);
@@ -194,14 +197,17 @@ class CharacterStore {
     return this._modelHead;
   }
 
-  public updateMaterialUniforms(time: number, id?: number) {
+  public updateMaterialUniforms(time: number, id?: number, envTexture?: CubeTexture | DataTexture | Texture) {
     runInAction(() => {
       if (this._modelMaterial.uniforms.time) {
         this._modelMaterial.uniforms.time.value = time;
         if (id) {
           this._modelMaterial.uniforms.diffuseRandomColor.value = this._modelMaterial.colorsCube216[id];
+          if (this._modelMaterial.envTexture === null && envTexture) {
+            this._modelMaterial.envTexture = envTexture as Texture;
+            this._modelMaterial.envTexture.needsUpdate = true;
+          }
         }
-        this._modelMaterial.needsUpdate = true;
       }
     });
   }
