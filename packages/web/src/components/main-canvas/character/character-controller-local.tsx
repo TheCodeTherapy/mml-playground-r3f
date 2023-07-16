@@ -21,6 +21,7 @@ export const CharacterControllerLocal = ({
   const maxRunSpeed = 8.5;
   const gravity = -42;
   const jumpForce = 15;
+  const coyoteTimeThreshold = 350;
 
   const vectorUp = new Vector3(0, 1, 0);
   const vectorDown = new Vector3(0, -1, 0);
@@ -63,7 +64,11 @@ export const CharacterControllerLocal = ({
 
   const characterVelocity = useRef<Vector3>(new Vector3());
   const characterOnGround = useRef<boolean>(false);
+  const characterWasOnGround = useRef<boolean>(false);
+  const coyoteTime = useRef<boolean>(false);
+
   const characterCanJump = useRef<boolean>(true);
+  const characterAirborneSince = useRef<number>(0);
 
   const currentHeight = useRef<number>(0);
 
@@ -127,6 +132,10 @@ export const CharacterControllerLocal = ({
       } else {
         characterVelocity.current.y = dt * gravity;
       }
+    } else if (jump && coyoteTime.current) {
+      console.log("coyoteJump");
+      characterVelocity.current.y += jumpForce;
+      characterCanJump.current = false;
     } else {
       characterVelocity.current.y += dt * gravity;
       characterCanJump.current = false;
@@ -182,6 +191,16 @@ export const CharacterControllerLocal = ({
     characterRef.current.position.add(deltaVector);
 
     characterOnGround.current = deltaVector.y > Math.abs(dt * characterVelocity.current.y * 0.25);
+
+    if (characterWasOnGround.current && !characterOnGround.current) {
+      characterAirborneSince.current = Date.now();
+    }
+    coyoteTime.current =
+      characterVelocity.current.y < 0 &&
+      characterOnGround.current === false &&
+      Date.now() - characterAirborneSince.current < coyoteTimeThreshold;
+
+    characterWasOnGround.current = characterOnGround.current;
 
     if (characterOnGround.current) {
       characterVelocity.current.set(0, 0, 0);
