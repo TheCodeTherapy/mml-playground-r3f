@@ -1,11 +1,18 @@
+import { RefObject } from "react";
+import { Object3D } from "three";
+
 import { useNetwork } from "../../../network/use-network";
 
 import { CharacterControllerLocal } from "./character-controller-local";
 import { CharacterControllerRemote } from "./character-controller-remote";
 import { CharacterModel } from "./character-model";
 
-export const Character = (props: { isLocal: boolean; clientId?: number }) => {
-  const { isLocal, clientId } = props;
+export const Character = (props: {
+  isLocal: boolean;
+  clientId?: number;
+  characterObject3DRef: RefObject<Object3D>;
+}) => {
+  const { isLocal, clientId, characterObject3DRef } = props;
 
   const { id: localId } = useNetwork();
 
@@ -25,7 +32,14 @@ export const Character = (props: { isLocal: boolean; clientId?: number }) => {
     <>
       {isLocal && localId && (
         <CharacterControllerLocal>
-          {(characterState) => <CharacterModel characterState={characterState} isLocal={true} id={localId} />}
+          {(characterState) => (
+            <CharacterModel
+              characterState={characterState}
+              isLocal={true}
+              id={localId}
+              characterObject3DRef={characterObject3DRef}
+            />
+          )}
         </CharacterControllerLocal>
       )}
     </>

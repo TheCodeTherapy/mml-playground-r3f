@@ -1,4 +1,5 @@
 import { configure, makeAutoObservable, runInAction } from "mobx";
+import { RefObject } from "react";
 import {
   AnimationAction,
   AnimationMixer,
@@ -26,6 +27,7 @@ export interface CharacterAnimatorProps {
   transitionDuration?: number;
   isLocal?: boolean;
   id?: number;
+  characterObject3DRef?: RefObject<Object3D>;
 }
 
 configure({ enforceActions: "always" });

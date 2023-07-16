@@ -13,7 +13,7 @@ import {
   setGlobalMScene,
 } from "mml-web";
 import { RefObject, useEffect, useRef } from "react";
-import { AudioListener, Group, Object3D, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
+import { AudioListener, Group, Object3D, PerspectiveCamera, Scene, WebGLRenderer } from "three";
 
 import { CollisionsManager } from "../collisions/collisions-manager";
 
@@ -22,7 +22,6 @@ export class CoreMMLScene {
   private scene: THREE.Scene;
   private camera: THREE.Camera;
   private mmlScene: Partial<IMMLScene>;
-  private scenePosition: PositionAndRotation;
   private promptManager: PromptManager;
   private interactionListener: InteractionListener;
   private audioListener: AudioListener;
@@ -36,16 +35,12 @@ export class CoreMMLScene {
     renderer: WebGLRenderer,
     scene: Scene,
     camera: PerspectiveCamera,
-    collisionsManager: CollisionsManager
+    collisionsManager: CollisionsManager,
+    getCharacterPositionAndRotation: () => PositionAndRotation
   ) {
     this.scene = scene;
     this.camera = camera;
     this.collisionsManager = collisionsManager;
-
-    this.scenePosition = {
-      position: camera.position,
-      rotation: new Vector3(camera.rotation.x, camera.rotation.y, camera.rotation.z),
-    };
 
     const { interactionListener } = InteractionManager.init(document.body, this.camera, this.scene);
 
@@ -61,7 +56,7 @@ export class CoreMMLScene {
       getThreeScene: () => scene,
       getRootContainer: () => group,
       getCamera: () => camera,
-      getUserPositionAndRotation: () => this.scenePosition,
+      getUserPositionAndRotation: getCharacterPositionAndRotation,
       addCollider: (object: Object3D) => {
         this.collisionsManager.addMeshesGroup(object as Group);
       },
@@ -117,7 +112,8 @@ export function useMML(
   renderer: WebGLRenderer,
   scene: Scene,
   camera: Camera | PerspectiveCamera,
-  collisionsManager: CollisionsManager
+  collisionsManager: CollisionsManager,
+  getCharacterPositionAndRotation: () => PositionAndRotation
 ) {
   const ranOnce = useRef<boolean>(false);
   useEffect(() => {
@@ -126,7 +122,14 @@ export function useMML(
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const host = window.location.host;
       document.getElementById("playground")?.setAttribute("src", `${protocol}//${host}/document`);
-      new CoreMMLScene(mainGroupRef.current, renderer, scene, camera as PerspectiveCamera, collisionsManager);
+      new CoreMMLScene(
+        mainGroupRef.current,
+        renderer,
+        scene,
+        camera as PerspectiveCamera,
+        collisionsManager,
+        getCharacterPositionAndRotation
+      );
     }
   });
 }

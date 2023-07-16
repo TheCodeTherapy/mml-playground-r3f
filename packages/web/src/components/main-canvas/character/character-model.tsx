@@ -1,6 +1,6 @@
 import { Html } from "@react-three/drei";
-import { PrimitiveProps, useFrame, useThree } from "@react-three/fiber";
-import { useRef, useEffect, FC, useState, useCallback } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useEffect, FC, useState, useCallback } from "react";
 import { AnimationAction, DataTexture, LoopRepeat, Texture } from "three";
 
 import { useTime } from "../../../hooks/use-time";
@@ -13,10 +13,10 @@ export const CharacterModel: FC<CharacterAnimatorProps> = ({
   transitionDuration = 0.15,
   isLocal = true,
   id,
+  characterObject3DRef,
 }) => {
   const useIdTag: boolean = useToggle(false, "p");
   const [characterStore] = useState(() => (isLocal ? CHAR_STORE : new CharacterStore()));
-  const characterModelRef = useRef<PrimitiveProps | null>(null);
   const time = useTime();
   const { scene } = useThree();
 
@@ -61,8 +61,8 @@ export const CharacterModel: FC<CharacterAnimatorProps> = ({
   return (
     <>
       {characterStore.modelLoaded === true && characterStore.model !== null && (
-        <>
-          <primitive ref={characterModelRef} object={characterStore.model} />
+        <object3D ref={characterObject3DRef}>
+          <primitive object={characterStore.model} />
           {useIdTag && (
             <Html position={[0, 2.2, 0]}>
               <div
@@ -77,7 +77,7 @@ export const CharacterModel: FC<CharacterAnimatorProps> = ({
               </div>
             </Html>
           )}
-        </>
+        </object3D>
       )}
     </>
   );
