@@ -14,7 +14,7 @@
   const label = document.getElementById("users-connected");
   const staircaseHolder = document.getElementById("staircase-holder");
 
-  const stepHeight = 0.35;
+  const stepHeight = 0.38;
   const stepRadius = 5;
   const stepAngle = Math.PI / 16;
   const yThreshold = 1;
@@ -67,45 +67,43 @@
     return step;
   }
 
-  function updateStaircase(userPosition) {
-    const userY = userPosition.y;
-
-    for (let [y, step] of steps) {
-      const stepPosition = {
-        x: stepRadius * Math.cos(y * stepAngle / stepHeight),
-        y: y * stepHeight,
-        z: stepRadius * Math.sin(y * stepAngle / stepHeight),
-      };
-      const distance = Math.sqrt(
-        Math.pow(userPosition.x - stepPosition.x, 2) +
-        Math.pow(userPosition.y - stepPosition.y, 2) +
-        Math.pow(userPosition.z - stepPosition.z, 2)
-      );
-      if (distance > xzThreshold || stepPosition.y > userY) {
-        step.remove();
-        steps.delete(y);
-      }
-    }
-
-    const minY = Math.max(0, Math.floor((userY - yThreshold) / stepHeight));
-    const maxY = Math.floor((userY + yThreshold) / stepHeight);
-    for (let y = minY; y <= maxY; y++) {
-      if (!steps.has(y)) {
+  function updateStaircase() {
+    const validYs = new Set();
+    for (let user of connectedUsers.values()) {
+      const userY = user.position.y;
+      const minY = Math.max(0, Math.floor((userY - yThreshold) / stepHeight));
+      const maxY = Math.floor((userY + yThreshold) / stepHeight);
+      for (let y = minY; y <= maxY; y++) {
         const stepPosition = {
           x: stepRadius * Math.cos(y * stepAngle / stepHeight),
           y: y * stepHeight,
           z: stepRadius * Math.sin(y * stepAngle / stepHeight),
         };
         const distance = Math.sqrt(
-          Math.pow(userPosition.x - stepPosition.x, 2) +
-          Math.pow(userPosition.y - stepPosition.y, 2) +
-          Math.pow(userPosition.z - stepPosition.z, 2)
+          Math.pow(user.position.x - stepPosition.x, 2) +
+          Math.pow(user.position.y - stepPosition.y, 2) +
+          Math.pow(user.position.z - stepPosition.z, 2)
         );
-        if (distance <= xzThreshold && userY - 0.1 > stepPosition.y) {
-          const step = createStep(y);
-          staircaseHolder.appendChild(step);
-          steps.set(y, step);
+        if (distance <= xzThreshold && user.position.y - 0.1 > stepPosition.y) {
+          validYs.add(y);
         }
+      }
+    }
+
+    // Remove steps that are not in the valid set
+    for (let y of steps.keys()) {
+      if (!validYs.has(y)) {
+        steps.get(y).remove();
+        steps.delete(y);
+      }
+    }
+
+    // Add steps that are in the valid set but not already created
+    for (let y of validYs) {
+      if (!steps.has(y)) {
+        const step = createStep(y);
+        staircaseHolder.appendChild(step);
+        steps.set(y, step);
       }
     }
   }
