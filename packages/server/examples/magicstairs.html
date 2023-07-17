@@ -1,0 +1,190 @@
+<m-group>
+  <m-label id="users-connected" content="0" x="-5" y="0.15" z="0" ry="90" font-size="30" width="9.75" alignment="center" height="0.5" color="#ffffff"></m-label>
+  <m-position-probe range="30" id="my-probe" interval="100"></m-position-probe>
+  <m-cube id="m-position-ground" x="0" y="-0.1" z="0" sx="9.75" sy="0.1" sz="9.75" color="#eebbbb" rx="0" ry="0" rz="0"></m-cube>
+  <m-group id="user-presence-holder"></m-group>
+  <m-group id="staircase-holder"></m-group>
+</m-group>
+
+<script>
+  const connectedUsers = new Map();
+  const userPresenceHolder = document.getElementById("user-presence-holder");
+  const positionProbe = document.getElementById("my-probe");
+  const ground = document.getElementById("m-position-ground");
+  const label = document.getElementById("users-connected");
+  const staircaseHolder = document.getElementById("staircase-holder");
+
+  const stepHeight = 0.35;
+  const stepRadius = 5;
+  const stepAngle = Math.PI / 16;
+  const yThreshold = 1;
+  const xzThreshold = 6;
+
+  let steps = new Map();
+
+  function hslToRgb(h, s, l) {
+    let r, g, b;
+
+    if (s == 0) {
+      r = g = b = l; // achromatic
+    } else {
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      };
+
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  }
+
+  function rgbToHex([r, g, b]) {
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  }
+
+  function createStep(y) {
+    const step = document.createElement("m-cube");
+    step.setAttribute("width", stepRadius * 0.8);
+    step.setAttribute("height", stepHeight);
+    step.setAttribute("depth", stepRadius * 0.8);
+    const hue = (y * 30 / 360) % 1;
+    const rgb = hslToRgb(hue, 1, 0.5);
+    const hex = rgbToHex(rgb);
+    step.setAttribute("color", hex);
+    step.setAttribute("x", stepRadius * Math.cos(y * stepAngle / stepHeight));
+    step.setAttribute("y", y * stepHeight);
+    step.setAttribute("z", stepRadius * Math.sin(y * stepAngle / stepHeight));
+    step.setAttribute("ry", y * (-stepAngle / stepHeight) * (180 / Math.PI));
+    return step;
+  }
+
+  function updateStaircase(userPosition) {
+    const userY = userPosition.y;
+
+    for (let [y, step] of steps) {
+      const stepPosition = {
+        x: stepRadius * Math.cos(y * stepAngle / stepHeight),
+        y: y * stepHeight,
+        z: stepRadius * Math.sin(y * stepAngle / stepHeight),
+      };
+      const distance = Math.sqrt(
+        Math.pow(userPosition.x - stepPosition.x, 2) +
+        Math.pow(userPosition.y - stepPosition.y, 2) +
+        Math.pow(userPosition.z - stepPosition.z, 2)
+      );
+      if (distance > xzThreshold || stepPosition.y > userY) {
+        step.remove();
+        steps.delete(y);
+      }
+    }
+
+    const minY = Math.max(0, Math.floor((userY - yThreshold) / stepHeight));
+    const maxY = Math.floor((userY + yThreshold) / stepHeight);
+    for (let y = minY; y <= maxY; y++) {
+      if (!steps.has(y)) {
+        const stepPosition = {
+          x: stepRadius * Math.cos(y * stepAngle / stepHeight),
+          y: y * stepHeight,
+          z: stepRadius * Math.sin(y * stepAngle / stepHeight),
+        };
+        const distance = Math.sqrt(
+          Math.pow(userPosition.x - stepPosition.x, 2) +
+          Math.pow(userPosition.y - stepPosition.y, 2) +
+          Math.pow(userPosition.z - stepPosition.z, 2)
+        );
+        if (distance <= xzThreshold && userY - 0.1 > stepPosition.y) {
+          const step = createStep(y);
+          staircaseHolder.appendChild(step);
+          steps.set(y, step);
+        }
+      }
+    }
+  }
+
+  function getOrCreateUser(connectionId, position, rotation) {
+    const user = connectedUsers.get(connectionId);
+    if (user) {
+      user.position = position;
+      user.rotation = rotation;
+      return user;
+    }
+    const userCube = document.createElement("m-cube");
+    userCube.setAttribute("collide", false);
+    userCube.setAttribute("width", 0.25);
+    userCube.setAttribute("height", 0.25);
+    userCube.setAttribute("depth", 0.25);
+    userCube.setAttribute("color", `#${Math.floor(Math.random() * 0xffffff).toString(16)}`);
+    // userPresenceHolder.append(userCube);
+    const newUser = {
+      cube: userCube,
+      position,
+      rotation,
+    };
+    connectedUsers.set(connectionId, newUser);
+    return newUser;
+  }
+
+  function clearUser(connectionId) {
+    const user = connectedUsers.get(connectionId);
+    if (!user) return;
+    if (user.cube) user.cube.remove();
+    connectedUsers.delete(connectionId);
+  }
+
+  function hasUsers() {
+    const usersAmount = connectedUsers.size;
+    label.setAttribute("content", `${usersAmount} user${usersAmount === 1 ? "" : "s"}`);
+    if (connectedUsers.size > 0) {
+      ground.setAttribute("color", "#bbeebb");
+    } else {
+      ground.setAttribute("color", "#eebbbb");
+    }
+  }
+
+  function setCubePosition(connectionId, position, rotation) {
+    const user = getOrCreateUser(connectionId, position, rotation);
+    user.cube.setAttribute("x", position.x);
+    user.cube.setAttribute("y", position.y);
+    user.cube.setAttribute("z", position.z);
+    user.cube.setAttribute("rx", rotation.x);
+    user.cube.setAttribute("ry", rotation.y);
+    user.cube.setAttribute("rz", rotation.z);
+  }
+
+  window.addEventListener("disconnected", (event) => {
+    const { connectionId } = event.detail;
+    clearUser(connectionId);
+    hasUsers();
+    updateStaircase({x: 0, y: 0, z: 0});
+  });
+
+  positionProbe.addEventListener("positionenter", (event) => {
+    const { connectionId, elementRelative, documentRelative } = event.detail;
+    setCubePosition(connectionId, elementRelative.position, elementRelative.rotation);
+    hasUsers();
+    updateStaircase(elementRelative.position);
+  });
+
+  positionProbe.addEventListener("positionmove", (event) => {
+    const { connectionId, elementRelative, documentRelative } = event.detail;
+    setCubePosition(connectionId, elementRelative.position, elementRelative.rotation);
+    hasUsers();
+    updateStaircase(elementRelative.position);
+  });
+
+  positionProbe.addEventListener("positionleave", (event) => {
+    const { connectionId } = event.detail;
+    clearUser(connectionId);
+    hasUsers();
+    updateStaircase({x: 0, y: 0, z: 0});
+  });
+</script>
