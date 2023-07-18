@@ -1,9 +1,13 @@
-<m-group>
+<m-group?>
   <m-label id="users-connected" content="0" x="-5" y="0.15" z="0" ry="90" font-size="30" width="9.75" alignment="center" height="0.5" color="#ffffff"></m-label>
-  <m-position-probe range="30" id="my-probe" interval="100"></m-position-probe>
+  <m-position-probe range="30" id="my-probe" interval="50"></m-position-probe>
   <m-cube id="m-position-ground" x="0" y="-0.1" z="0" sx="9.75" sy="0.1" sz="9.75" color="#eebbbb" rx="0" ry="0" rz="0"></m-cube>
   <m-group id="user-presence-holder"></m-group>
-  <m-group id="staircase-holder"></m-group>
+  <m-group y="-0.1" x="-2.2">
+    <m-group id="staircase-holder">
+      <m-cube x="5" y="-0.3" sx="4" sz="4.2" color="red"></m-cube>
+    </m-group>
+  </m-group>
 </m-group>
 
 <script>
@@ -14,11 +18,11 @@
   const label = document.getElementById("users-connected");
   const staircaseHolder = document.getElementById("staircase-holder");
 
-  const stepHeight = 0.38;
+  const stepHeight = 0.34;
   const stepRadius = 5;
   const stepAngle = Math.PI / 16;
-  const yThreshold = 1;
-  const xzThreshold = 6;
+  const yThreshold = 2;
+  const xzThreshold = 12;
 
   let steps = new Map();
 
@@ -52,19 +56,27 @@
   }
 
   function createStep(y) {
-    const step = document.createElement("m-cube");
-    step.setAttribute("width", stepRadius * 0.8);
-    step.setAttribute("height", stepHeight);
-    step.setAttribute("depth", stepRadius * 0.8);
+    const stepGroup = document.createElement("m-group");
+
     const hue = (y * 30 / 360) % 1;
     const rgb = hslToRgb(hue, 1, 0.5);
     const hex = rgbToHex(rgb);
+
+    const step = document.createElement("m-cube");
+    step.setAttribute("width", stepRadius * 0.8);
+    step.setAttribute("height", stepHeight);
+    step.setAttribute("depth", stepRadius * 0.835);
     step.setAttribute("color", hex);
-    step.setAttribute("x", stepRadius * Math.cos(y * stepAngle / stepHeight));
-    step.setAttribute("y", y * stepHeight);
-    step.setAttribute("z", stepRadius * Math.sin(y * stepAngle / stepHeight));
-    step.setAttribute("ry", y * (-stepAngle / stepHeight) * (180 / Math.PI));
-    return step;
+    step.setAttribute("rx", -3.6);
+    step.setAttribute("rz", 2);
+
+    stepGroup.appendChild(step);
+
+    stepGroup.setAttribute("x", stepRadius * Math.cos(y * stepAngle / stepHeight));
+    stepGroup.setAttribute("y", y * stepHeight);
+    stepGroup.setAttribute("z", stepRadius * Math.sin(y * stepAngle / stepHeight));
+    stepGroup.setAttribute("ry", y * (-stepAngle / stepHeight) * (180 / Math.PI));
+    return stepGroup;
   }
 
   function updateStaircase() {
